@@ -9,25 +9,35 @@ import os
 logging.config.fileConfig(fname='logger.conf', disable_existing_loggers=False)
 log = logging.getLogger(__name__)
 
-SCHEME_OUTPUT_PATH = "schema.sql"
+SCHEME_OUTPUT_PATH = "created_schema.sql"
 DATA_OUTPUT_PATH = "data.sql"
-
-def analyze_arguments():
-    if len(sys.argv) > 1:
-        file_path = sys.argv[1]
-        if not os.path.isfile(file_path):
-            print(f"Error: The provided argument '{file_path}' is not a valid file path.")
-            sys.exit(1)
-        return file_path
+SCHEMAS_DIR = "schemas"
 
 def read_file(path):
     with open(path) as f:
         return f.read().strip()
+    
+def load_schemas(folder_path):
+    content = ""
+    
+    if not os.path.exists(folder_path):
+        print(f"Folder not found: {folder_path}")
+        return content
+
+    for filename in os.listdir(folder_path):
+        file_path = os.path.join(folder_path, filename)
+
+        if os.path.isfile(file_path):
+            with open(file_path, 'r') as file:
+                file_content = file.read()
+                content += file_content + "\n"
+    
+    return content.strip()
 
 def create_random_scheme(client):
     messages=[
         {"role": "system", "content": "You are a postgres specialist."},
-        {"role": "user", "content": "Write me a scheme.sql file that has 5 tables. Do not insert any data."}
+        {"role": "user", "content": f"Write me a scheme.sql file that has {os.getenv('NUMBER_OF_TABLES', '5')} tables. Do not insert any data."}
     ]
     log.info(f"ChatGPT request: {messages}")
 
@@ -64,15 +74,12 @@ def create_random_data_based_on_scheme(client, scheme):
         return response_content
 
 if __name__ == "__main__":
-    scheme_path = analyze_arguments()
     client = OpenAI()
 
-    scheme = None
-    if scheme_path != None:
-        log.info(f"Loading database scheme from file: {scheme_path}")
-        scheme = read_file(scheme_path)
-    else:
-        log.info("Generating scheme")
+    log.info(f"Trying to load database schemes from folder: {SCHEMAS_DIR}")
+    scheme = load_schemas(SCHEMAS_DIR)
+    if (scheme == ""):
+        log.info("No schemas found. Generating scheme using chatGPT")
         scheme = create_random_scheme(client)
 
     log.info(f"Database scheme loaded\n{scheme}")

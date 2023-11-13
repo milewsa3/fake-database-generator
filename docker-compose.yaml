@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      args:
+        OPENAI_API_KEY: ${OPENAI_API_KEY}
+        NUMBER_OF_TABLES: 8
+    image: milewsa3/fdg
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: mysecretpassword
