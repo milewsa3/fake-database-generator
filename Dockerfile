@@ -1,17 +1,19 @@
-FROM python:3.10 AS builder
+FROM ubuntu:latest
 
 ARG OPENAI_API_KEY
+ENV TZ=Europe/Warsaw
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 WORKDIR /app
 
-COPY ./script.py /app/
-COPY ./logger.conf /app/
-COPY ./requirements.txt /app/
+RUN apt-get update && \
+    apt-get install -y python3 python3-pip postgresql postgresql-contrib && \
+    rm -rf /var/lib/apt/lists/*
 
-RUN pip install --no-cache-dir -r requirements.txt
-RUN python script.py
+COPY ./scripts/ /app/
 
-FROM postgres:latest
+RUN pip3 install --no-cache-dir -r requirements.txt
 
-COPY --from=builder /app/schema.sql /docker-entrypoint-initdb.d/
-COPY --from=builder /app/data.sql /docker-entrypoint-initdb.d/
+RUN chmod +x /app/run_script.sh
+
+ENTRYPOINT ["/app/run_script.sh"]
