@@ -6,7 +6,7 @@ ARG NUMBER_OF_TABLES
 WORKDIR /app
 
 COPY ./scripts/ /app/
-COPY ./schemas /app/schemas
+COPY ./schemas /schemas
 
 RUN pip install --no-cache-dir -r requirements.txt
 RUN python script.py

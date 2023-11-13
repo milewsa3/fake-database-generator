@@ -11,7 +11,7 @@ log = logging.getLogger(__name__)
 
 SCHEME_OUTPUT_PATH = "created_schema.sql"
 DATA_OUTPUT_PATH = "data.sql"
-SCHEMAS_DIR = "schemas"
+SCHEMAS_DIR = "../schemas"
 
 def read_file(path):
     with open(path) as f:
